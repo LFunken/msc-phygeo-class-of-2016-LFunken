@@ -1,0 +1,36 @@
+---
+title: "rs-ws-01-1"
+author: "Burkert, Funken, Grigusova, Reiners"
+date: "25 Oktober 2016"
+output: html_document
+---
+
+## Hausaufgabe
+
+### Aufgabe 1
+
+1. 
+Digital terrain model, i.e. LiDAR-based height a.s.l. for all ground returns
+- Eigenschaften - Filter - Klasse 2
+- LAS-Dataset in raster 
+    - Zellenzuweisungstyp: MAXIMUM
+    - Abtastwert: 1
+
+
+
+![Ergebnis 1. Aufgabe](C:\Users/Lena/Desktop/Hausaufgabe/aAufgabe.JPG)
+
+
+### Aufgabe 3
+
+3.
+LiDAR-based intensity mean within each raster cell
+- Eigenschaften - Filter - Alle Klassen 
+- LAS-Dataset in Raster 
+    - Wertfeld: Intensity
+    - Lückenfüllmethode: simple
+    - Ausgabedatentyp: INT
+    - Abtastwert: 1
+
+
+![Ergebnis 3. Aufgabe](C:\Users/Lena/Desktop/Hausaufgabe/cAufgabe.JPG)
