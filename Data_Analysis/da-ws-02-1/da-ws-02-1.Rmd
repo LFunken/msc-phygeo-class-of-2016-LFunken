@@ -1,0 +1,118 @@
+---
+title: "da-ws-02-1"
+author: "keltoskytoi, LauraS86, LFunken, Pseudogley2"
+date: "30 Oktober 2016"
+output: html_document
+---
+
+## 1. Teil:
+```{r}
+n <- 1 ## Der Variable n wurde beispielhaft der Wert 1 zugewiesen, damit Knit HTML ausgeführt werden kann.
+if (n > 1) {
+    print("Larger")
+} else {
+    print("Equal or smaller")
+}
+```
+
+## 2. Teil:
+```{r}
+if (n > 1) {
+    print("Larger")
+} else if (n == 1) {
+    print("Equal")
+} else if (n < 1) {
+    print("Smaller")
+}
+```
+
+## 3. Teil:
+```{r}
+if (n %% 2 == 0) {
+    print("Even")
+} else {
+    print("Odd")
+}
+```
+
+## 4. Teil:
+```{r}
+n <- NULL
+for(n in c(0:2)){
+if (n > 1) {
+    print("Larger")
+} else if (n == 1) {
+    print("Equal")
+} else if (n < 1) {
+    print("Smaller")
+}
+}
+```
+
+## 5. Teil:
+```{r}
+n <- NULL
+v1 <- NULL
+v1 <- c("initialisierung")
+for(n in c(0:2)){
+if (n > 1) {
+    (ergebnis <- "Larger")
+} else if (n == 1) {
+    (ergebnis <- "Equal")
+} else if (n < 1) {
+    (ergebnis <- "Smaller")
+}
+  v1[[n+1]] <- ergebnis
+}
+print(v1)
+```
+
+## 6. Teil:
+```{r}
+n <- NULL
+liste <- list("initialisierung")
+for(n in c(0:2)){
+if (n > 1) {
+    (ergebnis <- "Larger")
+} else if (n == 1) {
+    (ergebnis <- "Equal")
+} else if (n < 1) {
+    (ergebnis <- "Smaller")
+}
+  liste[[n+1]] <- ergebnis
+}
+print(liste)
+```
+
+## 7. Teil:
+```{r}
+n <- NULL
+liste <- NULL
+liste <- lapply(0:2, function(n){
+if (n > 1) {
+    (ergebnis <- "Larger")
+} else if (n == 1) {
+    (ergebnis <- "Equal")
+} else if (n < 1) {
+    (ergebnis <- "Smaller")
+}
+})
+print(liste)
+```
+
+## 8. Teil:
+```{r}
+n <- NULL
+liste <- NULL
+liste <- lapply(0:2, function(n){
+if (n > 1) {
+    (ergebnis <- "Larger")
+} else if (n == 1) {
+    (ergebnis <- "Equal")
+} else if (n < 1) {
+    (ergebnis <- "Smaller")
+}
+})
+vektor <- unlist(liste)
+print(vektor)
+```
