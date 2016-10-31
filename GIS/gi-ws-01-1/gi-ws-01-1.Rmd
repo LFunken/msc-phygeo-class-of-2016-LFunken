@@ -1,0 +1,33 @@
+---
+title: "Untitled"
+author: "LauraS86, Pseudogley2, LFunken"
+date: "28 Oktober 2016"
+output: html_document
+---
+## gi-ws-01-1
+
+###Probleme
+Programm:
+
+    -Finden der Funktionen
+    -Finden der richitigen Projektion
+
+Inhalt:
+
+    -Abgrenzung der verschiedenen Objekten durch die Darstellung der Oberfläche
+    -Indikatoren: Farbe, Form und Kombinationen daraus, Landschaftsformen die dem natürlichen Landschaftbild ähnlich sind
+    -Farbdifferenzierung
+    -Auflösung zu grob für eine genaue Abgrenzung
+    -Auflösung innerhalb des Bildes
+
+
+###Lösungen
+Prgramm:
+
+    -durchklicken und suchen
+
+Inhalt:
+
+    -Kombinationen aus Strukturen und Farbgebung genutzt
+    -diskutiert
+
