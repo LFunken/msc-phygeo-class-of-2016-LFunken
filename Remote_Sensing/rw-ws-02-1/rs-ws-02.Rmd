@@ -1,0 +1,72 @@
+---
+title: "rs-ws-02"
+author: "Grigusova, Reiners, Burkert, Funken"
+date: "2 November 2016"
+output: html_document
+---
+
+## Aufgabe 1 - Visualisierung
+
+![Areal Image](C:\Users/Lena/Desktop/Daten/Areal_Image.PNG)
+
+## Aufgabe 2 - Crop Image 
+```{r eval=FALSE}
+library(sp)
+library(raster)
+library(rgdal)
+
+#Bilder einfügen
+setwd("C:/Users/Lena/Desktop/Daten/")
+setwd("C:/Users/Lena/Desktop/Daten/")
+rs1 <- raster("474000_5630000.tif")
+rs2 <- raster("474000_5632000.tif")
+rs3 <- raster("476000_5630000.tif")
+rs4 <- raster("476000_5630000_1.tif")
+rs5 <- raster("476000_5632000_1.tif")
+rs6 <- raster("478000_5630000.tif")
+rs7 <- raster("478000_5632000.tif")
+lidar <- raster("geonode-las_intensity_05.tif")
+  
+# Bilder zusammenfügen 
+rast.list <- list(rs1,rs2,rs3,rs4,rs5,rs6,rs7)
+rast.list$fun <- mean
+rast.mosaic <- do.call(mosaic,rast.list)
+plot(rast.mosaic)
+
+# Info
+rast.mosaic
+lidar
+
+# aerial images: extent: 474000, 480000, 5630000, 5634000  (xmin, xmax, ymin, ymax)
+# lidar: extent: 474000, 479000, 5630000, 5634000  (xmin, xmax, ymin, ymax)
+
+# Bild abschneiden
+crop.mosaic <- rast.mosaic
+bb <- c(474000, 479000, 5630000, 5634000)
+crop.mosaic <- crop(crop.mosaic, bb)
+
+# crop the two aerial images (rs6, rs7)
+
+# rs6: extent: 478000, 480000, 5630000, 5632000  (xmin, xmax, ymin, ymax)
+cr6 <- c(478000, 479000, 5630000, 5632000)
+crop.rs6 <- crop(rs6, cr6)
+
+# rs7: extent: 478000, 480000, 5632000, 5634000  (xmin, xmax, ymin, ymax)
+cr7 <- c(478000, 479000, 563200, 5634000)
+crop.rs7 <- crop(rs7,cr7)
+
+plot(crop.rs6)
+writeRaster (crop.rs7,filename="C:/Users/Lena/Desktop/Daten/aerial_croped/croped.rs7.tif", format='GTiff')
+writeRaster (crop.rs6,filename="C:/Users/Lena/Desktop/Daten/aerial_croped/croped.rs6.tif", format='GTiff')
+
+#rename
+startingDir <- ("C:/Users/Lena/Desktop/Daten/rename/")
+filez <-list.files (startingDir, pattern= "47")
+head(filez)
+sapply(filez,FUN=function(head(filez)){
+file.rename(from=head(filez),to=sub(pattern="",replacement="deprc",head(filez)))
+```
+## Aufgabe 3 - Visualisierung croped images
+![Croped Images](C:\Users/Lena/Desktop/Daten/Areal_Croped.PNG)
+
+#### Frage: Wieso ist das geschnittene Bild schwarz-weiß?
