@@ -1,0 +1,11 @@
+---
+title: "gi-ws-02-1"
+author: "LauraS86, Pseudogley2, LFunken"
+date: "7 November 2016"
+output: html_document
+---
+
+```{r}
+
+```
+![Plain & Plateau](C:\Users/Lena/Desktop/Plain&Plateau.PNG)
