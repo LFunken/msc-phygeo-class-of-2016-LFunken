@@ -1,0 +1,68 @@
+---
+title: "rs-ws-03-2"
+author: "Grigusova, Burkert, Reiners, Funken"
+date: "7 November 2016"
+output: html_document
+---
+###Frage:
+Wir würden auch die anderen Kanten überprüfen, wussten aber nicht, wie wir auf die Spalten zugreifen können.
+
+
+Strategie:
+
+* 1: man benötigt die jeweiligen Randpixeln der einzelnen, benachbarten Kacheln
+* 2: diese Pixel werden verglichen, ob die selben Oberflächen die selben Farben haben
+* 3: die jeweiligen benachbarten Pixeln werden durcheinander geteilt
+* 4: wenn der Wert nah eins ist, passen die Pixel zusammen
+  
+
+```{r eval=FALSE}
+library(sp)
+library(raster)
+library(rgdal)
+
+setwd("C:/Users/Lena/Desktop/Daten/Images/")
+rs1 <- stack("474000_5630000.tif")
+rs2 <- stack("474000_5632000.tif")
+rs3 <- stack("476000_5630000.tif")
+rs4 <- stack("476000_5632000.tif")
+rs5 <- stack("478000_5630000.tif")
+rs6 <- stack("478000_5632000.tif")
+
+#Funktion
+check <- function(ngb_fileOW){
+
+#N-S Vergleich
+ngb_fileNS <- c(rs1, rs2, rs3, rs4, rs5, rs6)
+names <- c("rs1", "rs2", "rs3", "rs4", "rs5", "rs6")
+
+
+#Abfrage
+l <- 1
+
+for(i in seq(1:3)){
+  a <- ngb_fileNS[[l]]
+  b <- ngb_fileNS[[l+1]]
+  aa <- getValues(a,1)
+  bb <- getValues(b,10000)
+  c <- aa/bb
+  
+  print(mean(c))
+
+  plot(c)
+  
+  if (0.9 < mean(c) && mean(c) < 1.005){
+    message("Die Bilder ", names[[l]], " und ", names[[l+1]], " passen zueinander. ")
+  } else {
+    message("Die Bilder ", names[[l]], " und ", names[[l+1]], " passen nicht zueinander.")
+  }
+  
+  
+  l <- l + 2
+}
+}
+
+check(ngb_fileOW)
+
+```
+

@@ -1,0 +1,39 @@
+---
+title: "rs-ws-03-1"
+author: "Grigusova, Burkert, Reiners, Funken"
+date: "7 November 2016"
+output: html_document
+---
+
+```{r eval=FALSE}
+library(raster)
+
+#weiﬂen Streifen rausschneiden
+setwd("C:/Users/Lena/Desktop/Daten/")
+rs1 <- stack("474000_5630000.tif")
+rs2 <- stack("474000_5632000.tif")
+rs3 <- stack("476000_5630000.tif")
+rs4 <- stack("476000_5630000_1.tif")
+rs5 <- stack("476000_5632000_1.tif")
+rs6 <- stack("478000_5630000.tif")
+rs7 <- stack("478000_5632000.tif")
+rs8 <- stack("476000_5632000.tif")
+
+#Zusammenf¸gen
+sumrs <- rs3 + rs4 - 255
+sumrs2 <- rs5 + rs8 - 255
+
+
+#Bilder ausgeben
+writeRaster (sumrs,filename="C:/Users/Lena/Desktop/Daten/aerial_merged/merged.rs34.tif", format='GTiff')
+writeRaster (sumrs2,filename="C:/Users/Lena/Desktop/Daten/aerial_merged/merged.rs58.tif", format='GTiff')
+
+
+#Umbenennen
+startingDir <- ("C:/Users/Lena/Desktop/Daten/rename/")
+filez <-list.files (startingDir, pattern= "47")
+head(filez)
+sapply(filez,FUN=function(head(filez)){
+  file.rename(from=head(filez),to=sub(pattern="",replacement="deprc",head(filez)))
+```
+
