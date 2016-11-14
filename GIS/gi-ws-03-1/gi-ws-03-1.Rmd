@@ -1,0 +1,52 @@
+---
+title: "gi-ws-03-1"
+author: "LauraS86, LFunken, Pseudogley2"
+date: "14 November 2016"
+output: html_document
+---
+
+```{r eval=FALSE}
+library(RSAGA) 
+library(raster)
+
+myenv <- rsaga.env(workspace="C:/Users/Lena/Documents/Uni/Master Marburg/1. Semester",
+                path="C:/Users/Lena/Desktop/saga",
+                modules="C:/Users/Lena/Desktop/saga/modules")
+myenv
+
+# alle Modeule ausgeben lassen: rsaga.get.modules(,env=myenv) 
+
+rsaga.get.usage("ta_morphometry",25,env=myenv)
+
+
+setwd("C:/Users/Lena/Documents/Uni/Master Marburg/1. Semester/GIS/1.Hausaufgabe/")
+rs1 <- raster("geonode-las_intensity_05 (2).tif")
+
+write.sgrd(rs1, file="rs1", header=NULL, env=myenv)
+
+## Befehl write.sgrd erzeugt "Error: is.matrix(data) is not TRUE". Die Datei "rs1.sgrd" wird nicht erstellt. Dadurch kann der restliche Teil des Skripts nicht ausgeführt werden
+
+
+rsaga.get.usage("ta_morphometry",25,env=myenv)
+
+rsaga.geoprocessor("ta_morphometry",25,env=myenv, list (
+  SLOPE="rs1",
+  MINCURV="rs1",
+  MAXCURV="rs1",
+  PCURV="rs1",
+  TCURV="rs1",
+  PLAIN="create",
+  FORM="creat",
+  MEM="creat",
+  ENTROPY="creat",
+  CI="creat",
+  SLOPETODEG=0,
+  T_SLOPE_MIN=5,
+  T_SLOPE_MAX=15,
+  T_CURVE_MIN=0.000002,
+  T_CURVE_MAX=0.00005)
+)
+
+shell('C:/Program Files/QGIS 2.14/apps/saga/saga_cmd.exe ta_morphometry 25 -SLOPE="rs1.sgrd" -MINCURV="rs1.sgrd" -MAXCURV="rs1.sgrd" -PCURV="rs1.sgrd" -TCURV="rs1.sgrd" -PLAIN="create" -FORM="create" -MEM="create" -ENTROPY="create" -CI="create" -SLOPETODEG=0 -T_SLOPE_MIN=5 -T_SLOPE_MAX=15 -T_CURVE_MIN=0.000002 -T_CURVE_MAX=0.00005,'cmd.exe')
+      
+```
