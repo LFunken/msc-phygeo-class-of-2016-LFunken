@@ -1,0 +1,14 @@
+---
+title: "da-ws-04-2"
+author: "LauraS86, LFunken, Pseudogley2"
+date: "13 November 2016"
+output: html_document
+---
+
+```{r}
+fruechte <- readRDS("C:/Users/Lena/Documents/Uni/Master Marburg/1. Semester/Datenanalyse/4.Stunde/fruechte.rds")
+flaechen <- readRDS("C:/Users/Lena/Documents/Uni/Master Marburg/1. Semester/Datenanalyse/4.Stunde/flaechen.rds")
+
+print(fruechte[1:5,])
+print(flaechen[1:5,])
+```
