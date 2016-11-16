@@ -1,0 +1,42 @@
+---
+title: "rm-ws-04-2"
+author: "Grigusova, Reiners, Burkert, Funken"
+date: "16 November 2016"
+output: html_document
+---
+
+```{r}
+library(sp)
+library(raster)
+library(rgdal)
+library(glcm)
+
+setwd("C:/Users/Lena/Documents/Uni/Master Marburg/1. Semester/Fernerkundung/4. Hausaufgabe/VVI/")
+rs1 <- raster("vvistack1.tif")
+
+#croppen der betrachteten Zelle, da die Berechnung sonst nicht fertig wurde.
+rs1c <- c(474500, 474600, 5631000, 5631100)
+cropped <- crop(rs1, rs1c)
+plot(cropped)
+
+rs1_changed <- glcm(cropped, n_grey = 32, window = c(33, 33), shift = c(1, 1), statistics =c("contrast"), na_opt="any", na_val=NA)
+plot(rs1_changed)
+
+rs1_changed2 <- glcm(cropped, n_grey = 32, window = c(3, 3), shift = c(1, 1), statistics =c("contrast"), na_opt="any", na_val=NA)
+plot(rs1_changed2)
+
+rs1_changed3 <- glcm(cropped, n_grey = 32, window = c(155, 155), shift = c(1, 1), statistics =c("contrast"), na_opt="any", na_val=NA)
+plot(rs1_changed3)
+
+writeRaster(rs1_changed, "C:/Users/Lena/Documents/Uni/Master Marburg/1. Semester/Fernerkundung/4. Hausaufgabe/VVI/rs1_changed.tif", format= "GTiff", overwrite = TRUE)
+writeRaster(rs1_changed2, "C:/Users/Lena/Documents/Uni/Master Marburg/1. Semester/Fernerkundung/4. Hausaufgabe/VVI/rs1_changed2.tif", format= "GTiff", overwrite = TRUE)
+writeRaster(rs1_changed3, "C:/Users/Lena/Documents/Uni/Master Marburg/1. Semester/Fernerkundung/4. Hausaufgabe/VVI/rs1_changed3.tif", format= "GTiff", overwrite = TRUE)
+
+```
+###Filter "Contrast"
+Der Filter misst die Varianzen in den Grauscalen über das gesamte Bild, je größer der Unterschied zwischen den Varianzen ist, desto größer der Kontrast.
+
+###Auswahl Bilder
+Bei plot1 (3,3) ist kaum ein Kontrast zu erkennen.
+Bei plot3 (155,155) sind kaum noch Details zu erkennen und wurde abgeschnitten.
+Plot2 (33,33) ist im Gegensatz zu den anderne beiden Bilder das beste Bild, da der Kontrast am besten ist und man noch Details erkenne kann.
