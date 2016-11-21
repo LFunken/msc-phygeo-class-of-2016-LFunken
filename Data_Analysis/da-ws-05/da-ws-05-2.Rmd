@@ -1,0 +1,78 @@
+---
+title: "da-ws-05-2"
+author: "LSchnar, LFunken, Pseudogley2"
+date: "20 November 2016"
+output: html_document
+---
+
+```{r}
+library(MASS)
+library(car)
+
+fruechte <- readRDS("C:/Users/Lena/Documents/Uni/Master Marburg/1.Semester/Datenanalyse/Ergebnisse/da-ws-04/fruechte.rds")
+
+
+#1. Aufgabe 
+
+ind <- fruechte[,6]
+dep <- fruechte[,8]
+
+par_org <- par()
+par(mfrow = c(1,2))
+hist(ind, main = "winter wheat")
+hist(dep, main = "winter barley")
+par(par_org)
+
+plot(ind, dep, main= "relationship between winter wheat and winter barley", xlab = "winter wheat", ylab = "winter barley")
+
+lmod <- lm(dep ~ ind) 
+
+regLine(lmod, col = "red") 
+text(10, 16, bquote(paste("y"["i"], " = ", .(round(lmod$coefficients[1], 3)), 
+                          " + ", .(round(lmod$coefficients[2], 3)), "* x"["i"])))
+
+plot(lmod, which=1)
+plot(lmod, which=2)
+```
+
+Es gibt keine Normalverteilung, da nicht alles Residuen auf der Geraden liegen, die Homoskedastizität zeigt, dass die Residuen gleichmäsig streuen.
+
+```{r}
+#2. Aufgabe 
+
+
+# 50 zufällige Zahlen 
+liste50 <- NULL
+liste50 <- lapply(seq(100), function(x){
+  n <- ind
+  Zufall <- rnorm(n=50)
+  Zufallind <- sample(x=ind, size=100, replace=TRUE)
+  n <- dep
+  Zufall <- rnorm(n=50)
+  Zufalldep <- sample(x=dep, size=100, replace=TRUE)
+  wilcox.test(Zufallind, Zufalldep, paired=TRUE) 
+  result <- wilcox.test(Zufallind, Zufalldep, paired=TRUE)$p.value
+})
+
+
+# 100 zufällige Zahlen 
+liste100 <- NULL
+liste100 <- lapply(seq(100), function(x){
+  n <- ind
+  Zufall <- rnorm(n=100)
+  Zufallind <- sample(x=ind, size=100, replace=TRUE)
+  n <- dep
+  Zufall <- rnorm(n=100)
+  Zufalldep <- sample(x=dep, size=100, replace=TRUE)
+  wilcox.test(Zufallind, Zufalldep, paired=TRUE) 
+  result <- wilcox.test(Zufallind, Zufalldep, paired=TRUE)$p.value
+})
+
+#Ausgabe
+# Bei einem p-Wert < 0.05 wird die Hypothese verworfen, dass die Residuen normalverteilt sind.
+summary (liste50 < 0.05)
+summary (liste100 < 0.05)
+```
+
+#### Diskussion
+Die Hypothese, dass die Residuen normalverteilt sind, wird bei einer Stichprobe von 100 zufälligen Zahlen häufiger verworfen als bei einer Stichprobe von 50 zufälligen Zahlen. Eine Erklärung hierfür ist, dass bei einer Stichprobe von 100 zufälligen Zahlen die Wahrscheinlichkeit größer ist, dass Ausreißer dabei sind, die eine Normalverteilung verhindern.
