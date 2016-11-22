@@ -38,40 +38,29 @@ plot(lmod, which=2)
 Es gibt keine Normalverteilung, da nicht alles Residuen auf der Geraden liegen, die Homoskedastizität zeigt, dass die Residuen gleichmäsig streuen.
 
 ```{r}
-#2. Aufgabe 
-
+# 2. Aufgabe 
 
 # 50 zufällige Zahlen 
-liste50 <- NULL
 liste50 <- lapply(seq(100), function(x){
-  n <- ind
-  Zufall <- rnorm(n=50)
-  Zufallind <- sample(x=ind, size=100, replace=TRUE)
-  n <- dep
-  Zufall <- rnorm(n=50)
-  Zufalldep <- sample(x=dep, size=100, replace=TRUE)
-  wilcox.test(Zufallind, Zufalldep, paired=TRUE) 
-  result <- wilcox.test(Zufallind, Zufalldep, paired=TRUE)$p.value
+  n <- lmod$residuals
+  Zufallres <- sample(x=lmod$residuals, size=50, replace=TRUE)
+  shapiro.test(Zufallres)
+  result <- shapiro.test(Zufallres)$p.value
 })
 
 
 # 100 zufällige Zahlen 
-liste100 <- NULL
 liste100 <- lapply(seq(100), function(x){
-  n <- ind
-  Zufall <- rnorm(n=100)
-  Zufallind <- sample(x=ind, size=100, replace=TRUE)
-  n <- dep
-  Zufall <- rnorm(n=100)
-  Zufalldep <- sample(x=dep, size=100, replace=TRUE)
-  wilcox.test(Zufallind, Zufalldep, paired=TRUE) 
-  result <- wilcox.test(Zufallind, Zufalldep, paired=TRUE)$p.value
+  n <- lmod$residuals
+  Zufallres <- sample(x=lmod$residuals, size=100, replace=TRUE)
+  shapiro.test(Zufallres)
+  result <- shapiro.test(Zufallres)$p.value
 })
 
-#Ausgabe
-# Bei einem p-Wert < 0.05 wird die Hypothese verworfen, dass die Residuen normalverteilt sind.
-summary (liste50 < 0.05)
-summary (liste100 < 0.05)
+# Ausgabe
+# Bei einem p-Wert < 0.05 wird die Nullhypothese verworfen, dass die Residuen normalverteilt sind.
+summary(liste50 < 0.05)
+summary(liste100 < 0.05)
 ```
 
 #### Diskussion
