@@ -1,0 +1,59 @@
+---
+title: "gi-ws-04-1"
+author: "Schnar, LFunken, Pseudogley2"
+date: "22 November 2016"
+output: html_document
+---
+
+```{r eval=FALSE}
+library(RSAGA)
+library(raster)
+library(glcm)
+
+myenv <- rsaga.env(workspace="C:/Users/Lena/Documents/Uni/Master Marburg/1.Semester/Neue Ordnerstruktur/data/gis/",
+                   path="C:/Users/Lena/Desktop/Saga/saga_3.0.0_x64",
+                   modules="C:/Users/Lena/Desktop/Saga/saga_3.0.0_x64/tools/")
+myenv
+
+setwd("C:/Users/Lena/Documents/Uni/Master Marburg/1.Semester/Neue Ordnerstruktur/data/gis/")
+rs1 <- raster("raster_ground.tif") ## Raster ist ein Digitales Geländemodell, das auf Grundlage des LAS-Datasets erstellt wurde
+rs1
+plot(rs1)
+
+rsaga.get.modules(,env=myenv)
+rsaga.get.usage("ta_morphometry",25,env=myenv)
+
+saga_cmd <- "C:/Users/Lena/Desktop/Saga/saga_3.0.0_x64/saga_cmd.exe"
+path_data <- "C:/Users/Lena/Documents/Uni/Master Marburg/1.Semester/Neue Ordnerstruktur/data/gis/"
+raster_ground <- "C:/Users/Lena/Documents/Uni/Master Marburg/1.Semester/Neue Ordnerstruktur/data/gis/raster_ground.tif"
+
+cmd <- paste0(saga_cmd,
+              " ta_morphometry 0",
+              " -ELEVATION ",paste0(raster_ground, ".sgrd"),
+              " -SLOPE ",paste0(path_data,"SLOPE.sgrd"),
+              " -C_MINI ",paste0(path_data,"MINCURV.sgrd"),
+              " -C_MAXI ",paste0(path_data,"MAXCURV.sgrd"),
+              " -C_PROF ",paste0(path_data,"PCURV.sgrd"),
+              " -C_TANG ",paste0(path_data,"TCURV.sgrd"),
+              " -UNIT_SLOPE 1")
+
+cmd <- paste0(saga_cmd,
+              " ta_morphometry 25",
+              " -SLOPE ",paste0(path_data,"SLOPE.sgrd"),
+              " -MINCURV ",paste0(path_data,"MINCURV.sgrd"),
+              " -MAXCURV ",paste0(path_data,"MAXCURV.sgrd"),
+              " -PCURV ",paste0(path_data,"PCURV.sgrd"),
+              " -TCURV ",paste0(path_data,"TCURV.sgrd"),
+              " -PLAIN ",paste0(path_data, "PLAIN.sgrd"),
+              " -SLOPETODEG=0 ",
+              " -T_SLOPE_MIN=5 ",
+              " -T_SLOPE_MAX=15 ",
+              "- T_CURVE_MIN=0.000002 ",
+              "- T_CURVE_MAX=0.00005 ")
+
+outfile <- paste0(path_data, "PLAIN.sgrd")
+outfile <- paste0(substr(outfile, 1, nchar(outfile)-4), "tif")
+
+plains <- raster(paste0(path_data, "PLAIN.tif"))
+
+```
