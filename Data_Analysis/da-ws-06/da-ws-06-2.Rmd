@@ -1,0 +1,56 @@
+---
+title: "Untitled"
+author: "LauraS86, LFunken, Pseudogley2"
+date: "23 November 2016"
+output: html_document
+---
+library(MASS)
+library(car)
+```{r }
+fruechte <- readRDS("C:/Users/Lena/Documents/Uni/Master Marburg/1.Semester/data/data_analysis/rds/fruechte.rds")
+
+#delete rows with NA
+fruechte <- fruechte[!is.na(fruechte$Winter_wheat), ]
+fruechte <- fruechte[!is.na(fruechte$Winter_barley), ]
+
+#Extract to columns and built data frame
+ind <- fruechte$Winter_wheat 
+dep <- fruechte$Winter_barley
+frame <- data.frame(ind, dep)
+
+plot(ind, dep, main= "relationship between winter barley and winter wheat", xlab = "winter barley", ylab = "winter wheat")
+lmod <- lm(dep ~ ind)
+abline(lmod, col="red")
+
+
+# Leave-many-out cross-validation
+# Compute 100 different models using a randomly choosen training sample of 80% of the data
+range <- nrow(frame)
+nbr <- nrow(frame) * 0.8
+
+cv_sample <- lapply(seq(100), function(i){
+  set.seed(i)
+  smpl <- sample(range, nbr)
+  train <- frame[smpl,]
+  test <- frame[-smpl,]
+  lmod <- lm(dep ~ ind, data = train)
+  pred <- predict(lmod, newdata = test)
+  obsv <- test$dep
+  data.frame(pred = pred,
+             obsv = obsv
+  )
+})
+cv_sample <- do.call("rbind", cv_sample)
+
+# Calculate root mean square errors of each of the 100 models
+rmse_all <- lapply(seq(100), function(i){
+  a <- i*1404-1403
+  b <- i*1404
+  rmse <- round(sqrt(mean((cv_sample[a:b,]$pred - cv_sample[a:b,]$obs)^2, na.rm = TRUE)), 2)
+})
+rmse_all <- do.call("rbind", rmse_all)
+
+# Print statistics of the 100 root mean square errors
+summary(rmse_all)
+
+```
