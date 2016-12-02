@@ -1,0 +1,56 @@
+---
+title: "gi-ws-04-1"
+author: "Schnar, LFunken, Pseudogley2"
+date: "22 November 2016"
+output: html_document
+---
+
+
+```{r}
+library(RSAGA)
+library(raster)
+library(glcm)
+
+path_input <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/input/"
+path_output <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/output/"
+saga_cmd <- shQuote("C:/OSGeo4W/apps/saga/saga_cmd.exe")
+
+
+# Load digital elevation model (DEM)
+dem <- raster(paste0(path_input,"dem.tif"))
+
+cmd <- paste0("saga_cmd ta_morphometry 0",
+              " -ELEVATION ",paste0(path_output, "ELEVATION.sgrd"),
+              " -SLOPE ",paste0(path_output,"SLOPE.sgrd"),
+              " -C_MINI ",paste0(path_output,"MINCURV.sgrd"),
+              " -C_MAXI ",paste0(path_output,"MAXCURV.sgrd"),
+              " -C_PROF ",paste0(path_output,"PCURV.sgrd"),
+              " -C_TANG ",paste0(path_output,"TCURV.sgrd"),
+              " -UNIT_SLOPE 1")
+
+cmd <- paste0("saga_cmd ta_morphometry 25",
+              " -SLOPE ",paste0(path_output,"SLOPE.sgrd"),
+              " -MINCURV ",paste0(path_output,"MINCURV.sgrd"),
+              " -MAXCURV ",paste0(path_output,"MAXCURV.sgrd"),
+              " -PCURV ",paste0(path_output,"PCURV.sgrd"),
+              " -TCURV ",paste0(path_output,"TCURV.sgrd"),
+              " -PLAIN ",paste0(path_output, "PLAIN.sgrd"),
+              " -SLOPETODEG=0 ",
+              " -T_SLOPE_MIN=5 ",
+              " -T_SLOPE_MAX=15 ",
+              "- T_CURVE_MIN=0.000002 ",
+              "- T_CURVE_MAX=0.00005 ")
+
+outfile <- paste0(path_output, "PLAIN.sgrd")
+outfile <- paste0(substr(outfile, 1, nchar(outfile)-4), "tif")
+plains <- raster(paste0(path_output, "PLAIN.tif"))
+
+
+
+outfile <- paste0(path_output, "PLAIN.tif")
+cmd <- paste0("path io_gdal 2",
+              " -GRIDS ", paste0(path_output, "PLAIN.sgrd"),
+              " -FILE ", outfile)
+plain_raster <- raster("C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/output/PLAIN.tif")
+plot(plain_raster)
+```
