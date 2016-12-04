@@ -1,0 +1,109 @@
+---
+title: "gi-ws-03-1"
+author: "LauraS86, LFunken, Pseudogley2"
+date: "14 November 2016"
+output: html_document
+---
+
+```{r eval=FALSE}
+library(RSAGA) 
+library(raster)
+library(glcm)
+library(gdalUtils)
+
+path_input <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/input/"
+path_output <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/output/"
+saga_cmd <- shQuote("C:/OSGeo4W/apps/saga/saga_cmd.exe")
+
+
+# Load digital elevation model (DEM)
+dem <- raster(paste0(path_input,"dem.tif"))
+
+
+# Transform tif to sgrd
+cmd <- paste0(saga_cmd,
+              " io_gdal 0",
+              " -GRIDS ", paste0(path_output,"dem.tif"),
+              " -FILES ", paste0(path_input, "dem.tif"))
+cmd
+system(cmd)
+
+
+# Compute slope, Minimum, Maximum, Profile, Tangential Curvature
+cmd <- paste0(saga_cmd,
+              " ta_morphometry 0",
+              " -ELEVATION ", paste0(path_output, "dem.sgrd"),
+              " -SLOPE ", paste0(path_output, "SLOPE.sgrd"),
+              " -C_MINI ", paste0(path_output, "MINCURV.sgrd"),
+              " -C_MAXI ", paste0(path_output, "MAXCURV.sgrd"),
+              " -C_PROF ", paste0(path_output, "PCURV.sgrd"),
+              " -C_TANG ", paste0(path_output, "TCURV.sgrd"),
+              " -UNIT_SLOPE 1")
+cmd
+system(cmd)
+
+
+# Ta morphometry 25
+ta_morphometry25 <- paste0(saga_cmd,
+                           " ta_morphometry 25",
+                           " -SLOPE ", paste0(path_output, "SLOPE.sgrd"),
+                           " -MINCURV ", paste0(path_output, "MINCURV.sgrd"),
+                           " -MAXCURV ", paste0(path_output, "MAXCURV.sgrd"),
+                           " -PCURV ", paste0(path_output, "PCURV.sgrd"),
+                           " -TCURV ", paste0(path_output, "TCURV.sgrd"),
+                           " -PLAIN ", paste0(path_output, "PLAIN.sgrd"),
+                           " -FORM ", paste0(path_output, "FORM.sgrd"),
+                           " -MEM ", paste0(path_output, "MEM.sgrd"),
+                           " -ENTROPY ", paste0(path_output, "ENTROPY.sgrd"),
+                           " -CI ", paste0(path_output, "CI.sgrd"),
+                           " -SLOPETODEG=0 ",
+                           " -T_SLOPE_MIN=1.5 ",
+                           " -T_SLOPE_MAX=15 ",
+                           " -T_CURVE_MIN=0.0006 ",
+                           " -T_CURVE_MAX=0.2 ")
+system(ta_morphometry25)
+
+
+# Convert result to tif
+outfile <- paste0(path_output, "PLAIN.tif")
+
+io_gdal2 <- paste0(saga_cmd,
+                   " io_gdal 2",
+                   " -GRIDS ", paste0(path_output, "PLAIN.sgrd"),
+                   " -FILE ", outfile)
+system(io_gdal2)
+
+plains <- raster(paste0(path_output,"PLAIN.tif"))
+plot(plains)
+
+
+# Reclassify all Values From 0.6 to 1 as 1 to define plain/plateau
+plains_reclass <- reclassify(plains, matrix(c(0.6,1,1)))
+plot(plains_reclass)
+
+
+# reclassify as plain or plateau using the DEM
+plains_reclass_backup <- plains_reclass
+
+
+# If heights are equal or larger than the 1st quantile of the heights of all raster cells of the DEM, cells will be reclassed as plateaus. If heights are lower, cells will be reclassed as plains.
+summary(dem)
+plains_reclass[plains_reclass_backup == 1 & dem < summary(dem)[2]] <- 1
+plains_reclass[plains_reclass_backup == 1 & dem >= summary(dem)[2]] <- 2
+
+
+# 0 - 0.6: not plain nor plateau
+# 1: Plain (yellow)
+# 2: Plateau (green)
+plot(plains_reclass)
+
+# Final: write reclassified raster to tif
+writeRaster(plains_reclass, paste0(path_output,"plainsplateaus"), "GTiff", overwrite=T)
+```
+
+
+```{r}
+library(raster)
+plainsplateaus <- raster("C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/output/plainsplateaus.tif")
+plot(plainsplateaus)
+```
