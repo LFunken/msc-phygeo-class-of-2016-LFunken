@@ -1,0 +1,29 @@
+---
+title: "da-ws-07-1"
+author: "LauraS86, LFunken, Pseudogley2"
+date: "12 Dezember 2016"
+output: html_document
+---
+
+```{r}
+data<- readRDS("C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/data_analysis/rds/fruechte.rds")
+source("C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/Kurse/fun/fun_fwd_fs.R")
+
+dep <- "Winter_wheat"
+vars <- names(data)[-c(1:5, which(names(data)==dep))]
+selected_vars <- c()
+ffs <- NULL
+run <- TRUE
+
+while(run == TRUE){
+  ffs <- forward_feature_selection(data, dep, vars, selected_vars = selected_vars)
+  selected_vars <- c(ffs[[1]], rbind(selected_vars))
+  vars <- vars[-which(vars == ffs[[1]])]
+  
+  if(ffs[[2]] < max(ffs[[3]]$Adj_R_sqrd)){
+    run <- FALSE
+    print(ffs)
+  }
+}
+
+```
