@@ -1,0 +1,91 @@
+---
+title: "gi-ws-05-1"
+author: "LauraS86, LFunken, Pseudogley2"
+date: "12 Dezember 2016"
+output: html_document
+---
+Uns war die Aufgabenstellung nicht ganz klar. Haben zuerst die Wasserscheide berechnet, anschlieﬂend noch den Topographic Wetness Index berechnet (laut Aufgabenstellung?)
+
+```{r eval=FALSE}
+library(raster)
+library(glcm)
+library(RSAGA)
+library(gdalUtils)
+
+myenv=rsaga.env(workspace="C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data",
+                path="C:/OSGeo4W/apps/saga",
+                modules="C:/OSGeo4W/apps/saga/modules")
+
+path_input <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/input/"
+path_output <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/output/"
+saga_cmd <- "C:/OSGeo4W/apps/saga/saga_cmd.exe"
+
+# Load digital elevation model (DEM)
+dem <- raster(paste0(path_input,"dem.tif"))
+
+#crop raster
+dem1 <- c(477783-1000, 477783+1000, 5632176-1000, 5632176+1000)
+cropped <- crop(dem, dem1)
+plot(cropped)
+writeRaster(cropped, file = paste0(path_input, "dem.cropped.tif"), format= "GTiff", overwrite = TRUE)
+
+
+# Transform tif to sgrd
+cmd <- paste0(saga_cmd,
+              " io_gdal 0",
+              " -GRIDS ", paste0(path_output,"dem.cropped.tif"),
+              " -FILES ", paste0(path_input, "dem.cropped.tif"))
+cmd
+system(cmd)
+
+#Fill Sinks
+rsaga.get.usage("ta_preprocessor",4, env=myenv)
+system(paste0(saga_cmd,
+              " ta_preprocessor 4 ",
+              " -ELEV ", paste0(path_output, "dem.cropped.sgrd"),
+              " -FILLED ", paste0(path_output, "FILLED.sgrd"),
+              " -FDIR ", paste0(path_output, "FDIR.sgrd"),
+              " -WSHED ", paste0(path_output, "WSHED.sgrd"),
+              " -MINSLOPE=0.000000"))
+
+#Transform Wshed.sgrd to tif 
+outfile <- paste0(path_output, "wshed.tif")
+io_gdal2 <- paste0(saga_cmd,
+                   " io_gdal 2",
+                   " -GRIDS ", paste0(path_output, "WSHED.sgrd"),
+                   " -FILE ", outfile)
+system(io_gdal2)
+wshed <- raster(paste0(path_output,"Wshed.tif"))
+plot(wshed)
+
+
+#Topographic Wetness Index
+rsaga.get.usage("ta_hydrology",20, env=myenv)
+system(paste0(saga_cmd,
+              " ta_hydrology 20 ",
+              " -SLOPE ", paste0(path_output, "dem.cropped.sgrd"),
+              " -AREA ", paste0(path_output, "dem.cropped.sgrd"),
+              " -TWI ", paste0(path_output, "TWI.sgrd"),
+              " -CONV=[0]",
+              " -METHOD=[0]"))
+
+#Transform Twi.sgrd to tif 
+outfile <- paste0(path_output, "Twi.tif")
+io_gdal2 <- paste0(saga_cmd,
+                   " io_gdal 2",
+                   " -GRIDS ", paste0(path_output, "TWI.sgrd"),
+                   " -FILE ", outfile)
+system(io_gdal2)
+twi <- raster(paste0(path_output,"Twi.tif"))
+plot(twi)
+```
+
+```{r}
+library(raster)
+wshed <- raster("C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/output/wshed.tif")
+plot(wshed)
+
+twi <- raster("C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/output/Twi.tif")
+plot(twi)
+
+```
