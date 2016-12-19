@@ -1,0 +1,68 @@
+---
+title: "da-ws-08-1"
+author: "LauraS86, LFunken, Pseudogley2"
+date: "18 Dezember 2016"
+output: html_document
+---
+
+```{r}
+library(gam)
+library(mgcv)
+
+df <-read.table("C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/data_analysis/csv/hessen_holzeinschlag_1997-2014.csv",
+                skip = 4, header = TRUE, nrow = 18, sep = ";", dec = ",")
+Buche <- df$Buche
+Eiche <- df$Eiche
+
+#80% 
+range <- nrow(df)
+nbr <- nrow(df) * 0.8
+
+
+# predict beech harvest based on oak harvest using an additive model
+# run over the number of knots between 3 and 13
+# 100 fold cross validation with 80 percent of the data set as training and the rest as testing samples
+knots <- lapply(seq(3,13), function(k){
+  rmse_rsq <- lapply(seq(100), function(i){
+    set.seed(i)
+    smpl <- sample(range, nbr)
+    train <- df[smpl,]
+    test <- df[-smpl,]
+    gmod <- gam(Buche ~ s(Eiche, k = k, fx = TRUE), data = train)
+    pred <- predict(gmod, newdata = test)
+    obsv <- test$Buche
+    rmse <- sqrt(mean((pred - obsv)^2))
+    rsq <- summary(gmod)$r.sq
+    data.frame(rmse,rsq)
+  })
+  rmse_rsq <- do.call("rbind", rmse_rsq)
+  
+  mean_rmse <- mean(rmse_rsq$rmse)
+  sd_rmse <- sd(rmse_rsq$rmse)
+  rmse_plus_sd <- mean_rmse + sd_rmse
+  rmse_minus_sd <- mean_rmse - sd_rmse
+  rsq <- mean(rmse_rsq$rsq)
+  data.frame(k,mean_rmse,rmse_plus_sd,rmse_minus_sd,rsq)
+})
+
+knots <- do.call("rbind", knots)
+print(knots)
+
+# normalize the root mean square errors to its maximum
+knots$mean_rmse <- knots$mean_rmse/max(knots$mean_rmse)
+knots$rmse_plus_sd <- knots$rmse_plus_sd/max(knots$rmse_plus_sd)
+knots$rmse_minus_sd <- knots$rmse_minus_sd/max(knots$rmse_minus_sd)
+print(knots)
+
+# visualize (i) the root mean square error,
+# (ii) the root mean square error +/- it's standard deviation and
+# (iii) the adjusted R squared as a function of increasing knots
+plot(knots$k, knots$rsq, ylim=c(-0.1,1), xlab="number of knots", ylab="normalized values")
+lines(knots$k, knots$mean_rmse, col = "red")
+lines(knots$k, knots$rmse_plus_sd, col = "blue")
+lines(knots$k, knots$rmse_minus_sd, col = "green")
+lines(knots$k, knots$rsq, col = "black")
+
+legend(10.86,0.27, c("mean_rmse","rmse_plus_sd","rmse_minus_sd","rsq"),
+       col=c("red","blue","green","black"), lty=2, cex=0.65)
+```
