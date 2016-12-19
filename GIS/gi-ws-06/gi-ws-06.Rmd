@@ -1,0 +1,116 @@
+---
+title: "gi-ws-06-1"
+author: "LauraS86, LFunken, Pseudogley2"
+date: "19 Dezember 2016"
+output: html_document
+---
+
+```{r eval=FALSE}
+library(raster)
+library(glcm)
+library(RSAGA)
+library(gdalUtils)
+library(sp)
+library(rgdal)
+
+myenv=rsaga.env(workspace="C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data",
+                path="C:/QGIS_2.14.5/apps/saga",
+                modules="C:/QGIS_2.14.5/apps/saga/modules")
+
+path_input <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/input/"
+path_output <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/output/"
+path_csv <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/csv/"
+saga_cmd <- "C:/QGIS_2.14.5/apps/saga/saga_cmd.exe"
+
+# Load digital elevation model (DEM)
+dem <- raster(paste0(path_input,"dem.tif"))
+
+# Crop DEM (2000m x 2000m square around the watershed at 477783 E, 5632176 N)
+extent <- extent(477783-1000, 477783+1000, 5632176-1000, 5632176+1000)
+dem.cropped <- crop(dem, extent)
+plot(dem.cropped)
+writeRaster(dem.cropped, file = paste0(path_input, "dem.cropped.tif"), "GTiff", overwrite = FALSE)
+
+
+# Transform tif to sgrd
+cmd <- paste0(saga_cmd,
+              " io_gdal 0",
+              " -GRIDS ", paste0(path_output,"dem.cropped.tif"),
+              " -FILES ", paste0(path_input, "dem.cropped.tif"))
+cmd
+system(cmd)
+
+# Overland Flow - Kinematic Wave
+# rsaga.get.usage("sim_hydrology",1, env=myenv)
+system(paste0(saga_cmd, 
+              " sim_hydrology 1 ",
+              " -DEM ", paste0(path_output, "dem.cropped.sgrd"),
+              " -FLOW ", paste0(path_output, "flow_0p1.sgrd"),
+              " -GAUGES ", paste0(path_input, "Pegel.shp"),
+              " -GAUGES_FLOW ", paste0(path_output, "gauge_flow_0p1"),
+              " -TIME_SPAN=24.000000",
+              " -TIME_STEP=0.100000"))
+
+######### calculate run-off at the gauge      ------------------------------
+######### simulation time = 24 hours      ----------------------------------
+######### simulation time step = 0.5 hours      ----------------------------
+
+# Module Overland Flow - Kinematic Wave D8
+# rsaga.get.usage("sim_hydrology",1, env=myenv)
+system(paste0(saga_cmd,
+              " sim_hydrology 1 ",
+              " -DEM ", paste0(path_output, "dem.cropped.sgrd"),
+              " -FLOW ", paste0(path_output, "flow_0p5.sgrd"),
+              " -GAUGES ", paste0(path_input, "Pegel.shp"),
+              " -GAUGES_FLOW ", paste0(path_output, "gauge_flow_0p5"),
+              " -TIME_SPAN=24.000000 ",
+              " -TIME_STEP=0.500000 "))
+
+######### calculate run-off at the gauge      ------------------------------
+######### simulation time = 24 hours      ----------------------------------
+######### simulation time step = 1.0 hours      ----------------------------
+
+# Module Overland Flow - Kinematic Wave D8
+# rsaga.get.usage("sim_hydrology",1, env=myenv)
+system(paste0(saga_cmd,
+              " sim_hydrology 1 ",
+              " -DEM ", paste0(path_output, "dem.cropped.sgrd"),
+              " -FLOW ", paste0(path_output, "flow_1p0.sgrd"),
+              " -GAUGES ", paste0(path_input, "Pegel.shp"),
+              " -GAUGES_FLOW ", paste0(path_output, "gauge_flow_1p0"),
+              " -TIME_SPAN=24.000000 ",
+              " -TIME_STEP=1.000000 "))
+```
+
+
+### How much rainfall per grid cell is used as event input?
+Rainfall per grid cell used as event input appears to be at 124.642621 because this is the gauge flow value at 0.0 hours using a simulation time-step of 0.1 hours.
+
+### crucial observations
+If the simulation time-step increases:
+
+1. The rainfall per grid cell used as event input increases slightly to 128.046965 at a 0.5 hour time-step and 128.513121 at a 1.0 hour time-step.
+
+2. The increase and decrease of gauge flow slows down heavily. The maximum is at 0.5 hours using a 0.1 hour time-step, at 2.5 hours using a 0.5 hour time-step and at 5.0 hours using a 1.0 hour time-step. The gauge flow values appear to be much more dependent from the number of simulations than from the simulation time.
+
+### Possible limitation of the simulation
+The input DEM raster was cropped to the area of 1000 m in northern, southern, western and eastern direction starting from the gauge in order to reduce simulation time. It is possible that water, that would have flown to the gauge coming from raster cells that are more far away from the gauge in the uncropped DEM, is not included in our model. That means, our simulated run-off at the gauge could be lower than with using the uncropped DEM.
+
+### Plot gauge flow for simulation time-step of 0.1 hours
+```{r}
+path_output <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/output/"
+results_0p1 <- read.table(paste0(path_output, "gauge_flow_0p1"), header = TRUE)
+plot(results_0p1)
+```
+
+### Plot gauge flow for simulation time-step of 0.5 hours
+```{r}
+results_0p5 <- read.table(paste0(path_output, "gauge_flow_0p5"), header = TRUE)
+plot(results_0p5)
+```
+
+### Plot gauge flow for simulation time-step of 1.0 hours
+```{r}
+results_1p0 <- read.table(paste0(path_output, "gauge_flow_1p0"), header = TRUE)
+plot(results_1p0)
+```
