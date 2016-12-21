@@ -1,0 +1,118 @@
+---
+title: "rs-ws-06"
+author: "Reiners, Grigusova, Burkert, Funken"
+date: "21 Dezember 2016"
+output: html_document
+---
+
+```{r eval=F}
+
+library(maptools)
+library(rgdal)
+library(sp)
+
+#Pfade erstellen
+path_main<-"C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/remote_sensing/Lannutzungsklassifikation"
+path_saga<-("C:/QGIS 2.14.5/apps/saga/saga_cmd.exe")
+path_orfeo<-"C:/QGIS 2.14.5/bin/"
+path_tmp<-("C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/remote_sensing/temp")
+
+#Erstellen von 6 verschiedenen Training- und Testgebieten
+
+train_areas <- readShapePoly(paste0(path_main,'All_Files.shp'), proj4string=CRS("+init=epsg:25832"))
+
+nbr <- range * 0.8
+range<-nrow(train_areas)
+
+for (i in seq(1:6)){
+
+smpl <- sample(range, nbr)
+training_areas <- train_areas[smpl,]
+test_areas <- train_areas[-smpl,]
+
+writeOGR(obj=training_areas, layer = paste0('training',i),dsn=path_main , driver='ESRI Shapefile', overwrite_layer = T)
+
+writeOGR(obj=test_areas, layer = paste0('test',i),dsn="C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/remote_sensing/Lannutzungsklassifikation" , driver='ESRI Shapefile', overwrite_layer = T)
+}
+
+#Berechne Training_ImageClassifier
+#Funktioniert nicht
+#Warning 1: Cannot find pcs.csv
+#Warning 1: Cannot find datum.csv or gdal_datum.csv
+#Warning 1: Cannot find ellipsoid.csv
+#Warning 1: Cannot find prime_meridian.csv
+
+Training_imageClassifier<-paste0(path_orfeo,"otbcli_TrainImagesClassifier",
+                                  " -io.il C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/remote_sensing/aerial_final/geonode_muf_merged_001m.tif",
+                                  " -io.vd C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/remote_sensing/Landnutzungsklassifikation/All_Files.shp",
+                                  " -io.out D:/Uni/Landnutzungsklassifikation/model1",
+                                  " -sample.vfn ID",
+                                  " -io.confmatout C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/remote_sensing/Landnutzungsklassifikation/matrix1",
+                                  " -classifier rf")
+
+Training_imageClassifier
+system(Training_imageClassifier)
+
+#Klassifikation wurde in Qgis mit dem Trainingsdatensatz erstellt und mit dem Testdatensatz validiert.
+```
+
+
+
+
+```{r eval=F }
+
+library(maptools)
+library(rgdal)
+library(sp)
+
+#Pfade erstellen
+path_main<-"C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/remote_sensing/Lannutzungsklassifikation"
+path_saga<-("C:/QGIS 2.14.5/apps/saga/saga_cmd.exe")
+path_orfeo<-"C:/QGIS 2.14.5/bin/"
+path_tmp<-("C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/remote_sensing/temp")
+```
+
+
+
+```{r eval=FALSE}
+#Einlesen der Konfusionsmatrix
+data<-read.table(paste0(path_tmp,"Confusionmatrix_training1.csv"), 
+                skip = 2, header = F, sep = ",", dec = ".", fill = TRUE, encoding = "ANSI")
+
+#Kappa Funktion erfordert gleiche Anzahl an Reihen und spalten
+#Fehlende Spalten werden mit 0 aufgefüllt: Verfaelschung des Ergebnisses?!?
+
+a<-matrix(0,nrow=26,ncol=5)
+data_new<-cbind(data,a)
+
+
+#Kappa Funktion
+
+compKappa <- function(ctable){
+  ctable <- ctable/sum(ctable)
+  categories <- nrow(ctable)
+  
+  # Fraction of agreement
+  pagrm <- 0
+  for(i in seq(categories)){
+    pagrm <- pagrm + ctable[i,i]
+  }
+  
+  # Expected fraction of agreement subject to the observed distribution
+  pexpct <- 0
+  for(i in seq(categories)){
+    pexpct <- pexpct + sum(ctable[i,]) * sum(ctable[,i])
+  }
+  
+  # Kappa index
+  kappa <- (pagrm - pexpct)/(1 - pexpct)
+  
+  return(kappa)
+}
+
+Kappa<-compKappa(data_new)
+print(Kappa)
+
+```
+
+
