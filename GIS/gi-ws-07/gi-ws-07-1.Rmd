@@ -1,0 +1,71 @@
+---
+title: "gi-ws-07-1"
+author: "LauraS86, LFunken, Pseudogley2"
+date: "16 Januar 2017"
+output: html_document
+---
+
+```{r eval=FALSE}
+library(raster)
+library(rgdal)
+library(glcm)
+library(RSAGA)
+library(gdalUtils)
+library(sp)
+
+myenv=rsaga.env(workspace="C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data",
+                path="C:/QGIS_2.14.5/apps/saga",
+                modules="C:/QGIS_2.14.5/apps/saga/modules")
+
+path_input <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/input/"
+path_output <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/output/"
+saga_cmd <- "C:/QGIS_2.14.5/apps/saga/saga_cmd.exe"
+
+# Load DSM
+dsm <- raster(paste0(path_input, "lidar_dsm_01m.tif"))
+
+# Invert dsm
+dsm_inv <- dsm*(-1)
+writeRaster(dsm_inv, paste0(path_output,"dsm_inv.tif"),overwrite=TRUE)
+
+# Transform tif to sgrd
+system(paste0(saga_cmd,
+              " io_gdal 0",
+              " -GRIDS ", paste0(path_output,"dsm_inv.sgrd"),
+              " -FILES ", paste0(path_output, "dsm_inv.tif")))
+
+
+# rsaga.get.usage("sim_hydrology",1,env=myenv)
+system(paste0(saga_cmd,
+              " sim_hydrology 1",
+              " -DEM ", paste0(path_output, "dsm_inv.sgrd"),
+              " -FLOW ", paste0(path_output, "dsm_flow.sgrd"),
+              " -TIME_SPAN=1.000000",
+              " -TIME_STEP=1.000000"
+))
+
+# Transform Grid in Tiff
+system(paste0(saga_cmd,
+              " io_gdal 2",
+              " -GRIDS ", paste0(path_output, "dsm_flow.sgrd"),
+              " -FILE ", paste0(path_output, "dsm_flow.tif")))
+
+flow <- raster(paste0(path_output, "dsm_flow.tif"))
+plot(flow)
+
+flow[flow < 500] <- 0
+flow[flow >= 500] <- 1
+plot(flow)
+
+#Raster to Point 
+flow_point <- rasterToPoints(flow)
+punkte <- data.frame(flow_point)
+
+#count trees
+trees <- punkte[punkte [, 3] == 1,]
+number_trees <- nrow(trees)
+print(number_trees)
+
+```
+
+Sinnvoll ist es zusätzlich Polygone anzeigen zu lassen, die die Außengrenzen der vermeintlichen Baumkronen markieren und diese Darstellung mit der Klassifizierung oder einem Luftbild abzugleichen. So könnte eindeutig festgestellt werden, ob die angezeigten Höhenpunkte auch wirklich Bäume darstellen.
