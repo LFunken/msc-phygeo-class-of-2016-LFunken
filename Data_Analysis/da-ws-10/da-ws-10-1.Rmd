@@ -1,0 +1,88 @@
+---
+title: "da-ws-10"
+author: "LauraS86, LFunken, Pseudogley2"
+date: "16 Januar 2017"
+output: html_document
+---
+
+```{r}
+library(forecast)
+
+path_mean <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/data_analysis/dwd_stationsdaten_3164_coelbe/"
+dwd <- read.table(paste0(path_mean, "produkt_synop_Terminwerte_20060701_20151231_03164.txt"),
+                       header = TRUE, sep= ";", dec = ".")
+head(dwd)
+
+#Datumsformat ändern
+#dwd$DATUM <- strptime(paste0(dwd$MESS_DATUM, "00"), format = "%Y%m%d%H%M")
+#head(dwd$DATUM)
+
+#Jahr & Monat auswählen (ersten 6 Stellen)
+dwd$AGG_JM <- substring(dwd$MESS_DATUM, 1, 6)
+
+#daraus Niederschlagshöhe
+nd <- aggregate(dwd$NIEDERSCHLAGSHOEHE, by=list(dwd$AGG_JM), FUN = sum)
+head(nd)
+colnames(nd) <- c("Date", "P")
+head(nd)
+
+# train & Test
+train <- nd[1:90, ]
+test <- nd[91:114, ]
+
+tam_train <- ts(train$P, start = c(2006, 7), end = c(2013, 12), frequency = 12)
+tam_test <- ts(test$P, start = c(2014, 1), end = c(2015, 12), frequency = 12)
+
+modit <- expand.grid(p = seq(0, 5), d = seq(0, 2), q = seq(0, 5), ps = seq(0, 2), ds = seq(0, 2), qs = seq(0, 2))
+
+#arima
+abc <- lapply(1:(nrow(modit)), function (i){
+  comb <- modit [i, ]
+  amond <- try(arima(tam_train, order = c(comb[, 1], comb[, 2], comb[, 3]),
+                    seasonal = list(order =c(comb[, 4], comb[, 5], comb[, 6]), period = NA),
+                    method ="ML", kappa=1e6))
+  if (class(amond) =="try-error"){
+    return(NULL)
+  } else {
+  pred <- predict(amond, n.ahead = 24, newdata = tam_test)
+  obsv <- tam_test
+  rmse <- sqrt(mean((pred$pred - obsv)^2))
+  return(data.frame(rmse,amond$aic,comb$p,comb$d,comb$q,comb$ps,comb$ds,comb$qs))}
+})
+abc <- do.call("rbind", abc) # 2757 lines --> 159 outtakes from the 2916 modit lines, first was modit line 191
+head(abc)
+summary(abc)
+
+## saveRDS(abc, file = "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/data_analysis/rds/da-ws-10-1.rds")
+abc <- readRDS(file = "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/data_analysis/rds/da-ws-10-1.rds")
+
+min(abc$rmse)
+rmse_min <- abc[min(abc$rmse), ] 
+print(rmse_min) # p=2, d=1, q=1, ps=0, ds=0, qs=0
+
+# arima with optimal parameter combination
+arimamod <- arima(tam_train, order = c(2,1,1),
+                  seasonal = list(order = c(0,0,0), period = NA),
+                  method = "ML", kappa = 1e6)  # the order is p, d, q, ps, ds, qs
+
+plot(forecast(arimamod), ylim=c(0,140))
+points(tam_test, col = "red")
+lines(tam_test, col = "red")
+
+
+# auto-arima
+autoarimamod <- auto.arima(tam_train, max.p = 5, max.q = 5, max.d = 2, stationary = TRUE, seasonal=FALSE)
+summary(autoarimamod)
+
+pred <- predict(autoarimamod, n.ahead = 24)
+obsv <- tam_test
+rmse <- sqrt(mean((pred$pred - obsv)^2))
+print(rmse)
+
+plot(forecast(autoarimamod), ylim=c(0,140))
+points(tam_test, col = "red")
+lines(tam_test, col = "red")
+
+# The predicted precipitation of our model (rmse = 28.55518) appears to be slightly closer to the observed precipitation than the predicted precipitation of the automatically retrieved model (rmse = 31.4242). But the predicted precipitation of the automatically retrieved model looks to be more likely to happen because of its seasonal variation.
+
+```
