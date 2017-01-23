@@ -1,0 +1,63 @@
+---
+title: "gi-ws-08"
+author: "LauraS86, LFunken, Pseudogley2"
+date: "23 Januar 2017"
+output: html_document
+---
+
+```{r eval=FALSE}
+#libraries
+library(raster)
+library(graphics)
+library(rgdal)
+library(RSAGA)
+library(gdalUtils)
+
+#Pfade setzten
+path_input <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/input/"
+path_output <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/output/"
+saga_cmd <- "C:/QGIS_2.14.5/apps/saga/saga_cmd.exe"
+
+#Daten einlesen 
+dsm <- raster(paste0(path_input, "lidar_dsm_01m.tif"))
+dem <- raster(paste0(path_input, "lidar_dem_01m.tif"))
+muf <- raster(paste0(path_input, "geonode_muf_merged_001m.tif"))
+pcag <- raster(paste0(path_input, "geonode-lidar_pcag_01m.tif"))
+pcgr <- raster(paste0(path_input, "geonode-lidar_pcgr_01m.tif"))
+
+
+#gi-ws-08-1
+#Density
+allpoints <- pcag+pcgr
+density <- pcag/allpoints
+plot(density)
+```
+
+```{r eval=FALSE}
+#gi-ws-08-2
+#Biomass
+trh <- dsm-dem
+dbh <- trh*density*0.05  ## Formel geraten
+plot(dbh)
+
+stem_biomass <- -13.595 + 8.446*mean(trh) + 20.378*density
+branch_biomass <- -2.447 + 1.367*mean(trh) + 3.300*density
+
+wooden_biomass <- stem_biomass+branch_biomass
+plot(wooden_biomass)
+
+# load waldklassen and aerial
+waldklassen <- stack(paste0(path_input, "geonode_muf_waldklassen.tif"))
+plotRGB(waldklassen)
+
+aerial <- stack(paste0(path_input, "geonode_muf_merge_001.tif"))
+plotRGB(aerial)
+```
+
+#### Discussion
+There is a relation between wooden biomass, the density of the forest area and the structure of the forest (age, species).
+For example an young tree area (coordinates 477555, 5632192) has low wooden biomass.
+
+
+#### Literature
+He, Q., Chen, E., An, R. & Y. Li (2013): Above-Ground Biomass and Biomass Components Estimation Using LiDAR Data in a Coniferous Forest. - In: Forests 4: 984-1002.
