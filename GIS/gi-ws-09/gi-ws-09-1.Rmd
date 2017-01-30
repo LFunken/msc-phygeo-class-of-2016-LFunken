@@ -1,0 +1,66 @@
+---
+title: "gi-ws-09-1"
+author: "LauraS86, LFunken, Pseudogley2, schoenej"
+date: "30 Januar 2017"
+output: html_document
+---
+
+```{r eval=FALSE}
+library(raster)
+library(graphics)
+library(rgdal)
+library(RSAGA)
+library(gdalUtils)
+library(maptools)
+library(link2GI)
+library(leaflet)
+library(maps)
+library(rgeos)
+library(sp)
+
+path_input <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/input/"
+path_output <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/output/"
+
+# Load data
+dsm <- raster(paste0(path_input, "lidar_dsm_01m.tif"))
+dem <- raster(paste0(path_input, "lidar_dem_01m.tif"))
+trees <- readOGR("C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/output", "centroids")
+
+
+##calculate tree density---------------------------------------------------------------------
+
+# crop trees
+ext <- extent(475000, 476000, 5630000, 5631000)
+trees_crop <- crop(trees, ext)
+
+# Buffer 
+trees_Buffer <- gBuffer(trees_crop, width=10, byid = TRUE)
+plot(trees_Buffer)
+
+# Density
+xy <- abs(apply(as.matrix(bbox(ext)), 1, diff))
+n <- 1
+r <- raster(ext, ncol=xy[1]*n, nrow=xy[2]*n)
+projection(r) <- CRS("+init=epsg:4326")
+rr <- rasterize(trees_Buffer, r)
+writeRaster(rr, "trees_Buffer", overwrite = TRUE)
+
+# normailze
+rr_norm <- rr/summary(rr)[5]
+plot(rr_norm)
+
+
+##calculate Biomass------------------------------------------------------------------------
+
+trh <- dsm - dem
+
+# crop trh
+trh_crop <- crop(trh, ext)
+
+# Biomass
+stem_biomass <- -13.595 + 8.446*mean(trh_crop) + 20.378*rr_norm
+branch_biomass <- -2.447 + 1.367*mean(trh_crop) + 3.300*rr_norm
+
+wooden_biomass <- stem_biomass+branch_biomass
+plot(wooden_biomass)
+```
