@@ -1,0 +1,92 @@
+---
+title: "da-ws-12"
+author: "LauraS86, LFunken, Pseudogley2"
+date: "23 Januar 2017"
+output: html_document
+---
+
+```{r}
+#install.packages("ggplot2")
+#install.packages("lattice")
+#install.packages("gridExtra")
+library(lattice)
+library(graphics)
+library(gridExtra)
+
+#Daten
+flaeche <- read.csv("C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/data_analysis/Textdokumente_Tabellen/AI001_gebiet_flaeche.txt",
+                    skip = 4, header = TRUE, sep = ";", dec = ",", fill = TRUE, encoding = "ANSI",
+                    stringsAsFactors = FALSE, na.strings = ".")
+names(flaeche) <- c("Year", "ID", "Place", "Settlement", "Recreation", "Agriculture", "Forest")
+lul <- reshape2::melt(flaeche, id.vars = c("Year", "ID", "Place"))
+
+
+#Boxplot
+plot1 <- bwplot(value ~ variable, data = lul, ylab = "",
+                scales = list(tck = c(1,0), x = list(tck = c(1,0))))
+
+orig <- bwplot(value ~ variable, data = lul, main = "Original", ylab="",
+               scales = list(tck = c(1,0), x = list(tck = c(1,0))))
+sqrt <- bwplot(value**0.5 ~ variable, data = lul, main = "Square root", ylab="",
+               scales = list(tck = c(1,0), x = list(tck = c(1,0))))
+cbrt <- bwplot(value**(1/3) ~ variable, data = lul, main = "Cube root", ylab="",
+               scales = list(tck = c(1,0), x = list(tck = c(1,0))))
+log <- bwplot(log(value) ~ variable, data = lul, main = "Log", ylab="",
+              scales = list(tck = c(1,0), x = list(tck = c(1,0))))
+
+bw_theme <- trellis.par.get()
+bw_theme$box.dot$pch <- "|"
+bw_theme$box.rectangle$col <- "black"
+bw_theme$box.umbrella$lty <- 1
+bw_theme$box.umbrella$col <- "black"
+bw_theme$plot.symbol$col <- "black"
+
+plot1 <- update(plot1, par.settings = bw_theme)
+plot(plot1)
+
+orig <- update(orig, par.settings = bw_theme)
+sqrt <- update(sqrt, par.settings = bw_theme)
+cbrt <- update(cbrt, par.settings = bw_theme)
+log <- update(log, par.settings = bw_theme)
+grid.arrange(orig,sqrt,cbrt,log, ncol=2)
+
+
+#Histogramm
+histogram(flaeche$Settlement, main="Histogram of flaeche$Settlement", ylab = "Frequency", 
+                  type = "count", breaks=16, col="white", 
+                  scales = list(tck = c(1,0), x = list(tck = c(1,0))))
+
+#QQPlot
+h <- as.numeric(quantile(flaeche$Agriculture, probs=c(0.25, 0.75), na.rm=TRUE))
+v <- as.numeric(qnorm(c(0.25, 0.75)))
+
+qqmath(flaeche$Agriculture, ylab = "Sample Quantiles", xlab = "Theoretical Quantiles", 
+       main = "Normal Q-Q Plot", col="black", col.line="red", grid=FALSE, type = c("p", "r"),
+       abline=list(h=c(h[1], h[2]), v=c(v[1], v[2]), lty=3, lwd=1, col.line="blue"),
+       scales = list(tck = c(1,0), x = list(tck = c(1,0))))
+
+
+qq1 <- qqmath((flaeche$Agriculture**1-1)/1, ylab = "Sample Quantiles", xlab = "Theoretical Quantiles", 
+              main = paste0("Normal Q-Q Plot, y**p-1/p for ", 1), col="black", col.line="red", grid=FALSE, type = c("p", "r"),
+              scales = list(tck = c(1,0), x = list(tck = c(1,0))))
+
+qq2 <- qqmath((flaeche$Agriculture**0.5-1)/0.5, ylab = "Sample Quantiles", xlab = "Theoretical Quantiles", 
+              main = paste0("Normal Q-Q Plot, y**p-1/p for ", 0.5), col="black", col.line="red", grid=FALSE, type = c("p", "r"),
+              scales = list(tck = c(1,0), x = list(tck = c(1,0))))
+
+qq3 <- qqmath((flaeche$Agriculture**0.25-1)/0.25, ylab = "Sample Quantiles", xlab = "Theoretical Quantiles", 
+              main = paste0("Normal Q-Q Plot, y**p-1/p for ", 0.25), col="black", col.line="red", grid=FALSE, type = c("p", "r"),
+              scales = list(tck = c(1,0), x = list(tck = c(1,0))))
+
+qq4 <- qqmath(log(flaeche$Agriculture), ylab = "Sample Quantiles", xlab = "Theoretical Quantiles", 
+              main = "Normal Q-Q Plot, log(y)", col="black", col.line="red", grid=FALSE, type = c("p", "r"),
+              scales = list(tck = c(1,0), x = list(tck = c(1,0))))
+
+grid.arrange(qq1, qq2, qq3, qq4, ncol=2)
+
+       
+#Scatterplot
+xyplot(flaeche$Recreation ~ flaeche$Settlement, data = flaeche,
+       col="black",scales = list(tck = c(1,0), x = list(tck = c(1,0))))
+
+```
