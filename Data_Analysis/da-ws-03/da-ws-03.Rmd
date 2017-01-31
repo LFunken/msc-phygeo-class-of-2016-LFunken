@@ -1,0 +1,51 @@
+---
+title: "da-ws-03-2"
+author: "LauraS86, LFunken, Pseudogley2"
+date: "6 November 2016"
+output: html_document
+---
+
+```{r}
+df <- read.table("F:/Master Physische Geographie/data_analysis/da-ws-03-2/hessen_holzeinschlag_1997-2014.csv",
+                 skip = 4, header = TRUE, nrow=18, sep = ";", dec = ",")
+
+boxplot(df[,2:7])
+```
+
+```{r}
+Buche <- (df[,3])
+Fichte <- (df[,5])
+buchefichte <- data.frame(Buche,Fichte)
+boxplot(buchefichte)
+```
+
+Bei der Buche ist die Streuung der Werte relativ gering (Median ca. 1800; 25%-Quartil ca. 1600; 75%-Quartil ca. 1900).
+
+Bei der Fichte ist die Streuung der Werte relativ groß (Median ca. 2000; 25%-Quartil ca. 1800; 75%-Quartil ca. 2700; ein Ausreißer).
+
+```{r}
+Buche <- (df[,3])
+Eiche <- (df[,2])
+Kiefer <- (df[,6])
+Fichte <- (df[,5])
+Buntholz <- (df[,4])
+
+bucheeiche <- data.frame(Buche,Eiche)
+buchekiefer <- data.frame(Buche,Kiefer)
+buchefichte <- data.frame(Buche,Fichte)
+buchebuntholz <- data.frame(Buche,Buntholz)
+
+par(mfrow = c(2,2))
+plot(bucheeiche, main = "Zusammenhang von Buche und Eiche")
+plot(buchekiefer, main = "Zusammenhang von Buche und Kiefer")
+plot(buchefichte, main = "Zusammenhang von Buche und Fichte")
+plot(buchebuntholz, main = "Zusammenhang von Buche und Buntholz")
+```
+
+Buche/Eiche: Wenn viele Buchen gefällt wurden, wurden auch viele Eichen gefällt.
+
+Buche/Kiefer: Wenn viele Buchen gefällt wurden, wurden auch viele Kiefern gefällt.
+
+Buche/Fichte: Wenn viele Buchen gefällt wurden, wurden auch viele Fichten gefällt.
+
+Buche/Buntholz: Schlecht zu bewerten, weil ab 2000 keine Daten für das Buntholz vorhanden sind.
