@@ -1,0 +1,36 @@
+---
+title: "Untitled"
+author: "Burkert, Grigusova, Reiners, Funken"
+date: "2 Februar 2017"
+output: html_document
+---
+
+```{r eval=FALSE}
+library(raster)
+library(sp)
+
+path_input <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/remote_sensing/Lannutzungsklassifikation/"
+path_output <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/remote_sensing/output/"
+saga_cmd <- "C:/QGIS_2.14.5/apps/saga/saga_cmd.exe"
+
+system(paste0(saga_cmd,
+              " io_gdal 0",
+              " -GRIDS ", paste0(path_input,"geonode-muf_lcc_prediction.sgrd"),
+              " -FILES ", paste0(path_input, "geonode-muf_lcc_prediction.tif")))
+
+system(paste0(saga_cmd,
+            " grid_filter 6",
+            " -INPUT ", paste0(path_input, "geonode-muf_lcc_prediction.sgrd"),
+            " -RESULT ", paste0(path_output, "pred_clean.sgrd"),
+            " -MODE=0 ",
+            " -RADIUS=10 "))
+
+system(paste0(saga_cmd,
+              " io_gdal 2",
+              " -GRIDS ", paste0(path_output, "pred_clean.sgrd"),
+              " -FILE ", paste0(path_output, "pred_clean_10.tif")))
+
+pred_clean <- raster(paste0(path_output,"pred_clean.tif"))
+plot(pred_clean)
+
+```
