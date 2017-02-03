@@ -1,0 +1,66 @@
+---
+title: "rs-ws-10"
+author: "Reiners, Grigusova, Burkert, Funken"
+date: "2 Februar 2017"
+output: html_document
+---
+
+
+![Klassifikation ohne Filter](C:\Users/Lena/Desktop/Klassifikation/Ungefiltert.JPG)
+
+
+Das Problem bei der Klassifikation sind die vielen Einzel Pixel, die ein gewisses Rauschen erzeugen. Um diese loszuwerden eignet sich am besten ein Modalfilter. Hierbei ist es von Bedeutung den richtigen Radius zu wählen, so dass zwar das Rauschen verschwindet, jedoch andererseits keine relevanten Elemente verloren gehen.Im folgenden wurde das Saga-Modul "Modalfilter" mit den Radien 3, 4 und 5 angewendet.
+
+```{r eval=F, warnings=F }
+#libraries
+library(raster)
+
+#paths
+path_input <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/remote_sensing/Lannutzungsklassifikation/"
+path_output <- "C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/remote_sensing/output/"
+saga_cmd <- "C:/QGIS_2.14.5/apps/saga/saga_cmd.exe"
+
+#read in classification
+classification <- raster(paste0(path_input, "geonode-muf_lcc_prediction.tif"))
+
+# Transform tif to sgrd
+
+system(paste0(saga_cmd,
+              " io_gdal 0",
+              " -GRIDS ", paste0(path_input,"geonode-muf_lcc_prediction.sgrd"),
+              " -FILES ", paste0(path_input, "geonode-muf_lcc_prediction.tif")))
+
+
+# anwenden des saga Moduls "Modalfilter"
+
+for (i in c(3,4,5)){
+
+system(paste0(saga_cmd,
+              " grid_filter 6",
+              " -INPUT ", paste0(path_input, "geonode-muf_lcc_prediction.sgrd"),
+              " -RESULT ", paste0(path_output,"geonode_muf_lcc_prediction_filtered_"),as.character(i),".sgrd",
+              " -RADIUS ",as.character(i)))
+
+
+# back to tif
+system(paste0(saga_cmd,
+                 " io_gdal 2",
+                 " -GRIDS ", paste0(path_output,"geonode_muf_lcc_prediction_filtered_"),as.character(i),".sgrd",
+                 " -FILE ",  paste0(path_output,"geonode_muf_lcc_prediction_filtered_"),as.character(i),".tif"))
+
+       
+
+}   
+
+```
+
+Es stellt sich heraus, dass das Ergebnis mit Filterradius 5 am besten geeignet ist.Hier ist das Rauschen nahezu verschwunden, und es gehen kaum Elemente verloren.
+
+
+![Klassifikation mit Filter Radius 3](C:\Users/Lena/Desktop/Klassifikation/Filter3.JPG)
+
+![Klassifikation mit Filter Radius 4](C:\Users/Lena/Desktop/Klassifikation/Filter4.JPG)
+
+![Klassifikation mit Filter Radius 5](C:\Users/Lena/Desktop/Klassifikation/Filter5.JPG)
+
+
