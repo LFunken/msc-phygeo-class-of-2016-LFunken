@@ -1,0 +1,165 @@
+---
+title: "rs-ws-11-1"
+author: "Burkert, Funken, Grigusova, Reiners"
+date: "6 Februar 2017"
+output: html_document
+---
+
+```{r, eval=F, warning=F}
+
+#paths
+path_input <- ("C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/remote_sensing/trees/")
+path_output <- ("C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/remote_sensing/trees/OUT/")
+path_tmp <- ("C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/remote_sensing/trees/tmp/")
+
+
+# libraries
+library(sp)
+library(raster)
+library(tools)
+library(glcm)
+library(RSAGA)
+library(gdalUtils)
+library(rgdal)
+library(rgeos)
+library(vegan)
+
+rasterOptions(tmpdir = path_tmp)
+
+# start loop, j = radius
+for(j in seq(from=10, to=100, by=10)){
+
+# get filepath of tree positions
+trees <- NULL
+trees <- readOGR("C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/remote_sensing/trees",
+                 "tree_positions")
+
+# remove NAs
+trees <- trees[!is.na(trees$tree_type), ]
+
+# extract species
+beech <- trees[trees@data$tree_type == "beech",]
+douglas <- trees[trees@data$tree_type == "douglas",]
+larch <- trees[trees@data$tree_type == "larch",]
+oak <- trees[trees@data$tree_type == "oak",]
+premium <- trees[trees@data$tree_type == "premium",]
+soft <- trees[trees@data$tree_type == "soft",]
+spruce <- trees[trees@data$tree_type == "spruce",]
+
+# put buffer around trees
+trees_buffer <- buffer(trees, width=2*j, dissolve=FALSE)
+
+# count trees in buffer
+count <- over(trees_buffer, trees, returnList = TRUE)
+
+tree_number <- list()
+for(i in seq(length(count))){
+  tree_number[[i]] <- nrow(count[[i]])
+}
+
+trees@data$tree_nbr <- unlist(tree_number)
+
+
+# count beech trees in buffer
+count <- over(trees_buffer, beech, returnList = TRUE)
+
+tree_number <- list()
+for(i in seq(length(count))){
+  tree_number[[i]] <- nrow(count[[i]])
+}
+
+trees@data$beech_nbr <- unlist(tree_number)
+
+
+# count douglas trees in buffer
+count <- over(trees_buffer, douglas, returnList = TRUE)
+
+tree_number <- list()
+for(i in seq(length(count))){
+  tree_number[[i]] <- nrow(count[[i]])
+}
+
+trees@data$douglas_nbr <- unlist(tree_number)
+
+
+# count larch trees in buffer
+count <- over(trees_buffer, larch, returnList = TRUE)
+
+tree_number <- list()
+for(i in seq(length(count))){
+  tree_number[[i]] <- nrow(count[[i]])
+}
+
+trees@data$larch_nbr <- unlist(tree_number)
+
+
+# count oak trees in buffer
+count <- over(trees_buffer, oak, returnList = TRUE)
+
+tree_number <- list()
+for(i in seq(length(count))){
+  tree_number[[i]] <- nrow(count[[i]])
+}
+
+trees@data$oak_nbr <- unlist(tree_number)
+
+
+# count premium trees in buffer
+count <- over(trees_buffer, premium, returnList = TRUE)
+
+tree_number <- list()
+for(i in seq(length(count))){
+  tree_number[[i]] <- nrow(count[[i]])
+}
+
+trees@data$premium_nbr <- unlist(tree_number)
+
+
+# count soft trees in buffer
+count <- over(trees_buffer, soft, returnList = TRUE)
+
+tree_number <- list()
+for(i in seq(length(count))){
+  tree_number[[i]] <- nrow(count[[i]])
+}
+
+trees@data$soft_nbr <- unlist(tree_number)
+
+
+# count spruce trees in buffer
+count <- over(trees_buffer, spruce, returnList = TRUE)
+
+tree_number <- list()
+for(i in seq(length(count))){
+  tree_number[[i]] <- nrow(count[[i]])
+}
+
+trees@data$spruce_nbr <- unlist(tree_number)
+
+
+head(trees@data)
+trees_counted <- as.data.frame(trees)
+saveRDS(trees_counted, file = paste0(path_output, "trees_counted_r", as.character(j),".rds"))
+
+#trees_counted <- readRDS(paste0(path_input, "trees_counted_r", as.character(j),".rds"))
+
+
+# calculate shannon index
+trees_counted_species <- trees_counted[,8:14]
+shannon <- diversity(trees_counted_species, index = "shannon", MARGIN = 1, base = exp(1))
+
+trees@data$shannon <- shannon
+trees@data <- trees@data[,c(1:6,ncol(trees@data))]
+
+writeOGR(trees, paste0(path_output, "shannon_r", as.character(j),".shp"), 
+         paste0(path_output, "shannon_r", as.character(j)), 
+         driver="ESRI Shapefile", overwrite = TRUE)
+}
+
+```
+
+![shannon Index 10](C:\Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/remote_sensing/trees/OUT/shannon_r_10.PNG)
+
+![shannon Index 20](C:\Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/remote_sensing/trees/OUT/shannon_r_20.PNG)
+
+Bei der Berechnung des Shannon Indexes hängen sich die meisten Rechner ab einem Radius von 30 auf. Daher nur die Bilder für den Radius für 10 und 20. 
