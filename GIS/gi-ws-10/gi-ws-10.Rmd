@@ -1,0 +1,61 @@
+---
+title: "gi-ws-10"
+author: "LauraS86, LFunken, Pseudogley2, schoenej, keltoskytoi,  richte4d"
+date: "6 Februar 2017"
+output: html_document
+---
+
+```{r, eval = F, warning = F}
+#libraries
+#install.packages("sos")
+library(sos)
+library(sp)
+library(rgdal)
+library(raster)
+
+# paths
+path_input <- ("C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/gis/input/")
+path_output <- ("C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/git/output/")
+baum <- readOGR("C:/Users/Lena/Documents/Uni/Master_Marburg/1.Semester/data/remote_sensing/trees",
+                 "tree_positions")
+
+# Raster einlesen und Baumhöhe berechnen
+DEM <- raster(paste0(path_input, "lidar_dem_01m.tif"))
+DSM <- raster(paste0(path_input, "lidar_dsm_01m.tif"))
+tree_height <- DSM-DEM
+
+# baum-layer und tree_height verschneiden um die Höhe jeden Baumes zu ermitteln
+baum$"hoehe" <- extract(tree_height, baum)
+
+# Annahme des h/d Verhältnis um dbh zu berechnen:
+# 0,45 bis 0,8, wobei 0,45 stabiler Wald und 0,8 labiler Wald ist
+# dbh=h/hd, Eingangshöhe in m, dbh in cm
+baum$"stabil" <- baum$hoehe/0.45
+baum$"instabil" <- baum$hoehe/0.8
+#as.data.frame(baum)
+
+# SDI Berechnung
+N <- raster(paste0(path_input, "density.tif"))
+
+# Durchschnittlicher Baumdurchmesser pro Hektar
+DEM[] <- 0
+dbh_raster_stabil <- rasterize(baum, DEM, "stabil")
+agg_dbh_stabil <- aggregate(dbh_raster_stabil,fact=100,expand=FALSE,fun=mean,na.rm=T)
+plot(agg_dbh_stabil)
+writeRaster(agg_dbh_stabil, file = paste0(path_input, "agg_dbh_stabil.tif"), "GTiff", overwrite=TRUE)
+
+DEM[] <- 0
+dbh_raster_instabil <- rasterize(baum, DEM, "instabil")
+agg_dbh_instabil <- aggregate(dbh_raster_instabil, fact=100, expand=F, fun=mean, na.rm=T)
+plot(agg_dbh_instabil)
+writeRaster(agg_dbh_instabil, file = paste0(path_input, "agg_dbh_instabil.tif"), "GTiff", overwrite=TRUE)
+
+# SDI=N*(dbh/25)^1,065; N: Stammzahl/ha; dbh: dbh der Bäume im betrachteten ha
+sdi_stabil <- N*(agg_dbh_stabil/25)^1.605
+plot(sdi_stabil)
+writeRaster(sdi_stabil, file = paste0(path_input, "sdi_stabil.tif"), "GTiff", overwrite=TRUE)
+
+sdi_instabil <- N*(agg_dbh_instabil/25)^1.605
+plot(sdi_instabil)
+writeRaster(sdi_instabil, file = paste0(path_input, "sdi_instabil.tif"), "GTiff", overwrite=TRUE)
+```
